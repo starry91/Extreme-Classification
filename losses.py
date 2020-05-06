@@ -41,7 +41,7 @@ class Loss():
             #loss2 = torch.sum(-y_hat_p+self.m+y_n_max)
             loss2 = -y_hat_p+self.m+y_n_max
             loss2[loss2 < 0] = 0
-            loss2 =  torch.sum(loss2)
+            loss2 = torch.sum(loss2)
             loss += (loss1+loss2)
         loss /= y_predicted.shape[0]
         # print("ReconstrLoss",loss)

@@ -212,8 +212,6 @@ if __name__ == '__main__':
     # wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=0B3lPMIHmG6vGdnEzRWZWQWJMRnc' -O RCV1-x.zip
     # wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=0B3lPMIHmG6vGdG1jZ19VS2NWRVU' -O Delicious.zip
 
-
-
     ############
     # Parameters Section
     # mpl_logger = logging.getLogger("matplotlib")
@@ -253,7 +251,6 @@ if __name__ == '__main__':
     encoder_layer_size = 600
     hidden_layer_size = 200
 
-
     ### For RCV ##
     # input_size = 47236
     # output_size = 2456
@@ -262,8 +259,6 @@ if __name__ == '__main__':
     # encoder_layer_size = 600
     # hidden_layer_size = 200
 
-
-
     # the parameters for training the network
     params = dict()
     params['learning_rate'] = 1e-3
@@ -271,7 +266,7 @@ if __name__ == '__main__':
     if(len(sys.argv) > 1):
         params['epoch_num'] = int(sys.argv[1])
 
-    params['batch_size'] = 64
+    params['batch_size'] = 128
 
     #params['batch_size'] = 1024
 
@@ -290,7 +285,8 @@ if __name__ == '__main__':
     use_all_singular_values = False
 
     # end of parameters section
-    HOME = "/home/neil/Documents/IIITH/sem4/Project/MTP2020-RankingXML-master" #"/home/praveen.balireddy/XML"
+    # "/home/praveen.balireddy/XML"
+    HOME = "/home/neil/Documents/IIITH/sem4/Project/MTP2020-RankingXML-master"
 
     ###########  Mediamill/Delicious  ###########
 
@@ -306,24 +302,22 @@ if __name__ == '__main__':
     #     tst_path=f"{HOME}datasets/Delicious/delicious_tstSplit.txt"
 
     embedding_weights = None
-    
+
     ###########  Eurlex-4k  ###########
     X_train, Y_train = load_data(
-         path=f"{HOME}/Eurlex/eurlex_train.txt", isTxt=True)
+        path=f"{HOME}/Eurlex/eurlex_train.txt", isTxt=True)
     X_test, Y_test = load_data(
-         path=f"{HOME}/Eurlex/eurlex_test.txt", isTxt=True)
+        path=f"{HOME}/Eurlex/eurlex_test.txt", isTxt=True)
 
     #embedding_path = f"{HOME}/data/embedding_weights_eurlex.csv"
     #embedding_weights = np.loadtxt(open(embedding_path, "rb"), delimiter=",", skiprows=1)
     #embedding_weights = torch.from_numpy(embedding_weights)
-    
 
     ###########  RCV  ###########
-    #X_train, Y_train=load_data(
+    # X_train, Y_train=load_data(
     #     path=f"{HOME}/datasets/RCV1-x/rcv1x_train.txt", isTxt=True)
-    #X_test, Y_test=load_data(
+    # X_test, Y_test=load_data(
     #     path=f"{HOME}/datasets/RCV1-x/rcv1x_test.txt", isTxt=True)
-
 
     ### Common code from here #########
     X_train, train_tfidf, Y_train = prepare_tensors_from_data(X_train, Y_train)

@@ -58,14 +58,12 @@ def get_matrix_from_txt(path, isSparse):
 
     return features.toarray(), labels.toarray().astype('int')
 
+
 def load_rcv_data(path):
     features, labels, num_samples, num_features, num_labels = data_utils.read_data(
         path)
 
     return features, labels
-
-
-
 
 
 def get_data(path):
@@ -96,8 +94,8 @@ def load_small_data(full_data_path, tr_path, tst_path):
     train_Y = labels[tr_indices[:, 0]]
     test_indices = pd.read_csv(tst_path, sep=" ", header=None)
     tst_indices = train_indices.to_numpy()
-    test_X = features[tr_indices[:, 0]]
-    test_Y = labels[tr_indices[:, 0]]
+    test_X = features[test_indices[:, 0]]
+    test_Y = labels[test_indices[:, 0]]
     return train_X, train_Y, test_X, test_Y
 
 
