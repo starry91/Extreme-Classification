@@ -73,3 +73,6 @@ Parameter Group 0
     weight_decay: 1e-05
 )
 [ INFO : 2020-05-06 20:15:59,123 ] - Epoch 1/2 - time: 153.89 - training_loss: 34446.6016 - val_loss: 30577.8641
+[ INFO : 2020-05-06 20:18:36,296 ] - Epoch 2: val_loss improved from 30577.8641 to 26907.9367, saving model to /home/neil/Documents/IIITH/sem4/Project/MTP2020-RankingXML-master/checkpoints/checkpoint.model
+[ INFO : 2020-05-06 20:18:37,896 ] - Epoch 2/2 - time: 158.77 - training_loss: 30704.0502 - val_loss: 26907.9367
+[ INFO : 2020-05-06 20:18:41,114 ] - loss on validation data: 26907.9367
