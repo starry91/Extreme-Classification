@@ -16,9 +16,11 @@ np.random.seed(1)
 
 
 class FeatureEmbedding(nn.Module):
-    def __init__(self, input_size, embedding_size, attention_layer_size, hidden_layer_size):
+    def __init__(self, input_size, embedding_size, attention_layer_size, hidden_layer_size, embedding_weight_matrix):
         super(FeatureEmbedding, self).__init__()
         self.embedding = nn.Embedding(input_size, embedding_size)
+        if embedding_weight_matrix is not None:
+            self.embedding.load_state_dict({'weight': embedding_weight_matrix})
         # Attention Module
         self.attentionfc1 = nn.Linear(embedding_size,  attention_layer_size)
         self.attentionfc2 = nn.Linear(attention_layer_size, embedding_size)
@@ -64,10 +66,10 @@ class Decoder(nn.Module):
 
 
 class AttentionModel(nn.Module):
-    def __init__(self, input_size, embedding_size, attention_layer_size, encoder_layer_size, hidden_layer_size, output_size):
+    def __init__(self, input_size, embedding_size, attention_layer_size, encoder_layer_size, hidden_layer_size, output_size, embedding_weight_matrix = None):
         super(AttentionModel, self).__init__()
         self.featureEmbedding = FeatureEmbedding(
-            input_size, embedding_size, attention_layer_size, hidden_layer_size)
+            input_size, embedding_size, attention_layer_size, hidden_layer_size, embedding_weight_matrix)
         self.encoder = Encoder(
             output_size, encoder_layer_size, hidden_layer_size)
         self.decoder = Decoder(

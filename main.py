@@ -290,47 +290,39 @@ if __name__ == '__main__':
     use_all_singular_values = False
 
     # end of parameters section
-
+    HOME = "/home/praveen.balireddy/XML"
 
     ###########  Mediamill/Delicious  ###########
 
     # X_train, Y_train, X_test, Y_test = load_small_data(
-    #     full_data_path="/home/praveen/Desktop/iiith-assignments/ExtremeClassification/Mediamill/Mediamill_data.txt",
-    #     tr_path="/home/praveen/Desktop/iiith-assignments/ExtremeClassification/Mediamill/mediamill_trSplit.txt",
-    #     tst_path="/home/praveen/Desktop/iiith-assignments/ExtremeClassification/Mediamill/mediamill_trSplit.txt"
+    #     full_data_path=f"{HOME}/Mediamill/Mediamill_data.txt",
+    #     tr_path=f"{HOME}/Mediamill/mediamill_trSplit.txt",
+    #     tst_path=f"{HOME}/Mediamill/mediamill_trSplit.txt"
     # )
 
-    X_train, Y_train, X_test, Y_test = load_small_data(
-        full_data_path="/home/nilabja.bhattacharya/XML/datasets/Delicious/Delicious_data.txt",
-        tr_path="/home/nilabja.bhattacharya/XML/datasets/Delicious/delicious_trSplit.txt",
-        tst_path="/home/nilabja.bhattacharya/XML/datasets/Delicious/delicious_tstSplit.txt"
     # X_train, Y_train, X_test, Y_test = load_small_data(
-    #     full_data_path="/home/praveen.balireddy/XML/datasets/Mediamill/Mediamill_data.txt",
-    #     tr_path="/home/praveen.balireddy/XML/datasets/Mediamill/mediamill_trSplit.txt",
-    #     tst_path="/home/praveen.balireddy/XML/datasets/Mediamill/mediamill_trSplit.txt"
-    # )
+    #     full_data_path=f"{HOME}/datasets/Delicious/Delicious_data.txt",
+    #     tr_path=f"{HOME}/datasets/Delicious/delicious_trSplit.txt",
+    #     tst_path=f"{HOME}datasets/Delicious/delicious_tstSplit.txt"
 
+    embedding_weights = None
+    
     ###########  Eurlex-4k  ###########
     # X_train, Y_train = load_data(
-    #     path="/home/praveen/Desktop/iiith-assignments/ExtremeClassification/Eurlex/eurlex_train.txt", isTxt=True)
+    #     path=f"{HOME}/Eurlex/eurlex_train.txt", isTxt=True)
     # X_test, Y_test = load_data(
-    #     path="/home/praveen/Desktop/iiith-assignments/ExtremeClassification/Eurlex/eurlex_test.txt", isTxt=True)
+    #     path=f"{HOME}/Eurlex/eurlex_test.txt", isTxt=True)
 
-    # X_train, Y_train = load_data(
-    #     path="/home/praveen.balireddy/XML/datasets/RCV1-x/rcv1x_train.txt", isTxt=True)
-    # X_test, Y_test = load_data(
-    #     path = "/home/praveen.balireddy/XML/datasets/RCV1-x/rcv1x_test.txt", isTxt = True)
+    embedding_path = f"{HOME}/data/embedding_weights_eurlex.csv"
+    embedding_weights = np.loadtxt(open(embedding_path, "rb"), delimiter=",", skiprows=1)
+    embedding_weights = torch.from_numpy(embedding_weights)
+    
 
     ###########  RCV  ###########
     #X_train, Y_train=load_data(
-    #     path="/home/praveen.balireddy/XML/datasets/RCV1-x/rcv1x_train.txt", isTxt=True)
+    #     path=f"{HOME}/datasets/RCV1-x/rcv1x_train.txt", isTxt=True)
     #X_test, Y_test=load_data(
-    #     path="/home/praveen.balireddy/XML/datasets/RCV1-x/rcv1x_test.txt", isTxt=True)
-
-    #X_train, Y_train = load_data(
-    #    path="/home/praveen.balireddy/XML/datasets/Eurlex/eurlex_train.txt", isTxt=True)
-    #X_test, Y_test = load_data(
-    #    path="/home/praveen.balireddy/XML/datasets/Eurlex/eurlex_test.txt", isTxt=True)
+    #     path=f"{HOME}/datasets/RCV1-x/rcv1x_test.txt", isTxt=True)
 
 
     ### Common code from here #########
@@ -341,14 +333,14 @@ if __name__ == '__main__':
     # Building, training, and producing the new features by DCCA
     model = AttentionModel(input_size=input_size, embedding_size=embedding_size,
                            attention_layer_size=attention_layer_size, encoder_layer_size=encoder_layer_size,
-                           hidden_layer_size=hidden_layer_size, output_size=output_size).to(device)
+                           hidden_layer_size=hidden_layer_size, output_size=output_size, embedding_weight_matrix=embedding_weights).to(device)
     # print(sum(p.numel() for p in model.parameters() if p.requires_grad))
     loss_func = Loss(outdim_size=hidden_layer_size, use_all_singular_values=use_all_singular_values,
                      device=device, r1=r1, m=m, lamda=lamda).loss
     solver = Solver(model=model, loss=loss_func,
                     outdim_size=output_size, params=params, device=device)
 
-    check_path = "/home/nilabja.bhattacharya/XML/checkpoints/checkpoint.model"
+    check_path = f"{HOME}/checkpoints/checkpoint.model"
 
     #check_path = "/home/praveen.balireddy/XML/checkpoints/checkpoint.model"
 
