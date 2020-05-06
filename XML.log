@@ -1,0 +1,75 @@
+[ INFO : 2020-05-06 19:48:50,427 ] - AttentionModel(
+  (featureEmbedding): FeatureEmbedding(
+    (embedding): Embedding(5000, 100)
+    (attentionfc1): Linear(in_features=100, out_features=25, bias=True)
+    (attentionfc2): Linear(in_features=25, out_features=100, bias=True)
+    (featurefc1): Linear(in_features=100, out_features=200, bias=True)
+  )
+  (encoder): Encoder(
+    (encoderfc1): Linear(in_features=3993, out_features=600, bias=True)
+    (encoderfc2): Linear(in_features=600, out_features=200, bias=True)
+  )
+  (decoder): Decoder(
+    (decoderfc1): Linear(in_features=200, out_features=600, bias=True)
+    (decoderfc2): Linear(in_features=600, out_features=3993, bias=True)
+  )
+)
+[ INFO : 2020-05-06 19:48:50,430 ] - Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    eps: 1e-08
+    lr: 0.001
+    weight_decay: 1e-05
+)
+[ INFO : 2020-05-06 19:51:26,226 ] - Epoch 1/1 - time: 155.79 - training_loss: 34446.6016 - val_loss: 30577.8641
+[ INFO : 2020-05-06 19:52:37,164 ] - AttentionModel(
+  (featureEmbedding): FeatureEmbedding(
+    (embedding): Embedding(5000, 100)
+    (attentionfc1): Linear(in_features=100, out_features=25, bias=True)
+    (attentionfc2): Linear(in_features=25, out_features=100, bias=True)
+    (featurefc1): Linear(in_features=100, out_features=200, bias=True)
+  )
+  (encoder): Encoder(
+    (encoderfc1): Linear(in_features=3993, out_features=600, bias=True)
+    (encoderfc2): Linear(in_features=600, out_features=200, bias=True)
+  )
+  (decoder): Decoder(
+    (decoderfc1): Linear(in_features=200, out_features=600, bias=True)
+    (decoderfc2): Linear(in_features=600, out_features=3993, bias=True)
+  )
+)
+[ INFO : 2020-05-06 19:52:37,172 ] - Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    eps: 1e-08
+    lr: 0.001
+    weight_decay: 1e-05
+)
+[ INFO : 2020-05-06 19:55:13,080 ] - Epoch 1/1 - time: 155.91 - training_loss: 34446.6016 - val_loss: 30577.8641
+[ INFO : 2020-05-06 20:13:24,985 ] - AttentionModel(
+  (featureEmbedding): FeatureEmbedding(
+    (embedding): Embedding(5000, 100)
+    (attentionfc1): Linear(in_features=100, out_features=25, bias=True)
+    (attentionfc2): Linear(in_features=25, out_features=100, bias=True)
+    (featurefc1): Linear(in_features=100, out_features=200, bias=True)
+  )
+  (encoder): Encoder(
+    (encoderfc1): Linear(in_features=3993, out_features=600, bias=True)
+    (encoderfc2): Linear(in_features=600, out_features=200, bias=True)
+  )
+  (decoder): Decoder(
+    (decoderfc1): Linear(in_features=200, out_features=600, bias=True)
+    (decoderfc2): Linear(in_features=600, out_features=3993, bias=True)
+  )
+)
+[ INFO : 2020-05-06 20:13:25,235 ] - Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    eps: 1e-08
+    lr: 0.001
+    weight_decay: 1e-05
+)
+[ INFO : 2020-05-06 20:15:59,123 ] - Epoch 1/2 - time: 153.89 - training_loss: 34446.6016 - val_loss: 30577.8641

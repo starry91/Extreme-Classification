@@ -234,24 +234,24 @@ if __name__ == '__main__':
     # hidden_layer_size = 80
 
     ### For Delicious ##
-    input_size = 500
-    output_size = 983
+    #input_size = 500
+    #output_size = 983
 
-    input_size = 120
-    output_size = 101
+    #input_size = 120
+    #output_size = 101
 
-    embedding_size = 100
-    attention_layer_size = 50
-    encoder_layer_size = 120
-    hidden_layer_size = 80
+    #embedding_size = 100
+    #attention_layer_size = 50
+    #encoder_layer_size = 120
+    #hidden_layer_size = 80
 
     ### For Eurlex ##
-    # input_size = 5000
-    # output_size = 3993
-    # embedding_size = 100
-    # attention_layer_size = 25
-    # encoder_layer_size = 600
-    # hidden_layer_size = 200
+    input_size = 5000
+    output_size = 3993
+    embedding_size = 100
+    attention_layer_size = 25
+    encoder_layer_size = 600
+    hidden_layer_size = 200
 
 
     ### For RCV ##
@@ -271,7 +271,7 @@ if __name__ == '__main__':
     if(len(sys.argv) > 1):
         params['epoch_num'] = int(sys.argv[1])
 
-    params['batch_size'] = 256
+    params['batch_size'] = 64
 
     #params['batch_size'] = 1024
 
@@ -290,7 +290,7 @@ if __name__ == '__main__':
     use_all_singular_values = False
 
     # end of parameters section
-    HOME = "/home/praveen.balireddy/XML"
+    HOME = "/home/neil/Documents/IIITH/sem4/Project/MTP2020-RankingXML-master" #"/home/praveen.balireddy/XML"
 
     ###########  Mediamill/Delicious  ###########
 
@@ -308,14 +308,14 @@ if __name__ == '__main__':
     embedding_weights = None
     
     ###########  Eurlex-4k  ###########
-    # X_train, Y_train = load_data(
-    #     path=f"{HOME}/Eurlex/eurlex_train.txt", isTxt=True)
-    # X_test, Y_test = load_data(
-    #     path=f"{HOME}/Eurlex/eurlex_test.txt", isTxt=True)
+    X_train, Y_train = load_data(
+         path=f"{HOME}/Eurlex/eurlex_train.txt", isTxt=True)
+    X_test, Y_test = load_data(
+         path=f"{HOME}/Eurlex/eurlex_test.txt", isTxt=True)
 
-    embedding_path = f"{HOME}/data/embedding_weights_eurlex.csv"
-    embedding_weights = np.loadtxt(open(embedding_path, "rb"), delimiter=",", skiprows=1)
-    embedding_weights = torch.from_numpy(embedding_weights)
+    #embedding_path = f"{HOME}/data/embedding_weights_eurlex.csv"
+    #embedding_weights = np.loadtxt(open(embedding_path, "rb"), delimiter=",", skiprows=1)
+    #embedding_weights = torch.from_numpy(embedding_weights)
     
 
     ###########  RCV  ###########

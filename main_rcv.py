@@ -320,10 +320,10 @@ if __name__ == '__main__':
     #     path = "/home/praveen.balireddy/XML/datasets/RCV1-x/rcv1x_test.txt", isTxt = True)
 
     ###########  RCV  ###########
-    X_train, Y_train=load_data(
-        path="/home/praveen.balireddy/XML/datasets/RCV1-x/rcv1x_train.txt", isTxt=True)
-    X_test, Y_test=load_data(
-        path="/home/praveen.balireddy/XML/datasets/RCV1-x/rcv1x_test.txt", isTxt=True)
+    X_train, Y_train=load_rcv_data(
+        path="/home/praveen.balireddy/XML/datasets/RCV1-x/rcv1x_train.txt")
+    X_test, Y_test=load_rcv_data(
+        path="/home/praveen.balireddy/XML/datasets/RCV1-x/rcv1x_test.txt")
 
     ### Common code from here #########
     #X_train, train_tfidf, Y_train = prepare_tensors_from_data(X_train, Y_train)

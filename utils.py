@@ -56,6 +56,12 @@ def get_matrix_from_txt(path, isSparse):
     features, labels, num_samples, num_features, num_labels = data_utils.read_data(
         path)
 
+    return features.toarray(), labels.toarray().astype('int')
+
+def load_rcv_data(path):
+    features, labels, num_samples, num_features, num_labels = data_utils.read_data(
+        path)
+
     return features, labels
 
 
@@ -119,8 +125,13 @@ def split_train_val(X, tfidf, Y):
 
 
 def prepare_tensors_from_data(X_train, Y_train):
+    print(X_train.shape, Y_train.shape)
+    print(type(X_train))
     X_data_new = np.array([list(range(X_train.shape[1]))]*X_train.shape[0])
-    X_TfIdftensor = torch.from_numpy(X_train[:, :, None])
+    #print(X_train[:, :, None].shape)
+    #new_array = np.asarray(X_train).reshape(X_train.shape[0],X_train.shape[1],1)
+     
+    X_TfIdftensor = torch.from_numpy(np.expand_dims(X_train,axis=2))
     X_train = torch.from_numpy(X_data_new)
     Y_train = torch.from_numpy(Y_train)
     Y_train = Y_train.type('torch.FloatTensor')
