@@ -32,7 +32,7 @@ torch.set_default_tensor_type(torch.FloatTensor)
 
 
 class Solver():
-    def __init__(self, model, loss, outdim_size, params, device=torch.device('cpu')):
+    def __init__(self, model, loss, outdim_size, params, lamda=50, device=torch.device('cpu')):
         self.model = model
         self.model.to(device)
         self.epoch_num = params['epoch_num']
@@ -44,6 +44,7 @@ class Solver():
 
         self.reg_par = params['reg_par']
         self.outdim_size = outdim_size
+        self.lamda = lamda
 
         formatter = logging.Formatter(
             "[ %(levelname)s : %(asctime)s ] - %(message)s")
@@ -85,6 +86,11 @@ class Solver():
             self.start_epoch, loss = self.load_model(checkpoint)
 
         train_losses = []
+        train_loss_hidden_list = []
+        train_loss_ae_list = []
+        val_losses = []
+        val_loss_hidden_list = []
+        val_loss_ae_list = []
         while(self.start_epoch < self.epoch_num):
             epoch_start_time = time.time()
             self.model.train()
@@ -92,6 +98,8 @@ class Solver():
                 range(data_size)), batch_size=self.batch_size, drop_last=False))
 
             temp_loss = []
+            temp_loss_hidden = []
+            temp_loss_ae = []
             for batch_idx in batch_idxs:
                 self.optimizer.zero_grad()
                 batch_tfidf = tfidf[batch_idx].to(self.device)
@@ -99,19 +107,30 @@ class Solver():
                 batch_Y_train = Y_train[batch_idx, :].to(self.device)
                 x_hidden, y_hidden, y_predicted = self.model(
                     batch_X_train, batch_tfidf, batch_Y_train)
-                loss = self.loss(x_hidden, y_hidden,
-                                 y_predicted, batch_Y_train)
+                loss_hidden, loss_ae = self.loss(x_hidden, y_hidden,
+                                                 y_predicted, batch_Y_train)
+                loss = loss_hidden+self.lamda*loss_ae
                 temp_loss.append(loss.item())
+                temp_loss_hidden.append(loss_hidden.item())
+                temp_loss_ae.append(loss_ae.item())
                 loss.backward()
                 self.optimizer.step()
             train_loss = np.mean(np.array(temp_loss))
             train_losses.append(train_loss)
+            train_loss_hidden_list.append(np.mean(np.array(temp_loss_hidden)))
+            train_loss_ae_list.append(np.mean(np.array(temp_loss_ae)))
 
             info_string = "Epoch {:d}/{:d} - time: {:.2f} - training_loss: {:.4f}"
             if v_x is not None and v_y is not None:
                 with torch.no_grad():
                     self.model.eval()
-                    val_loss = self.test(v_x, v_tfidf, v_y)
+                    val_loss, val_hidden, val_ae = self.test(
+                        v_x, v_tfidf, v_y)
+                    val_losses.append(val_loss)
+                    val_loss_hidden_list.append(
+                        np.mean(np.array(val_hidden)))
+                    val_loss_ae_list.append(
+                        np.mean(np.array(val_ae)))
                     info_string += " - val_loss: {:.4f}".format(val_loss)
                     if(best_val_loss is None):
                         best_val_loss = val_loss
@@ -140,24 +159,44 @@ class Solver():
                 self.start_epoch + 1, self.epoch_num, epoch_time, train_loss))
             self.start_epoch += 1
 
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.plot(np.array(train_losses), 'r')
-        fig.savefig('loss.png')
+            self.save_loss_plots(np.array(train_losses),
+                                 np.array(train_loss_hidden_list),
+                                 np.array(train_loss_ae_list),
+                                 np.array(val_losses),
+                                 np.array(val_loss_hidden_list),
+                                 np.array(val_loss_ae_list),)
 
-        # fig = plt.figure()
-        # plt.plot(np.array(train_losses), 'r')
-        # plt.savefig('loss.png')
-        # plt.close(fig)
         checkpoint_ = torch.load(checkpoint)['model_state_dict']
         self.model.load_state_dict(checkpoint_)
         if v_x is not None and v_y is not None:
-            loss = self.test(v_x, v_tfidf, v_y)
+            loss, _, _ = self.test(v_x, v_tfidf, v_y)
             self.logger.info("loss on validation data: {:.4f}".format(loss))
 
         if t_x is not None and t_y is not None:
-            loss = self.test(t_x, t_tfidf, t_y)
+            loss, _, _ = self.test(t_x, t_tfidf, t_y)
             self.logger.info('loss on test data: {:.4f}'.format(loss))
+
+    def save_loss_plots(self, train_losses, train_hidden, train_ae,
+                        val_losses, val_hidden, val_ae):
+        fig, ax = plt.subplots(2, 3)
+        fig.set_size_inches((30, 18))
+        fig.suptitle("losses_{0}".format(self.lamda), fontsize=20)
+        ax[0][0] = plt.subplot(231)
+
+        ax[0][0].set_title("train_loss")
+        ax[0][0].plot(train_losses, 'r')
+        ax[0][1].set_title("train_hidden")
+        ax[0][1].plot(train_hidden, 'r')
+        ax[0][2].set_title("train_reconstruction")
+        ax[0][2].plot(train_ae, 'r')
+
+        ax[1][0].set_title("val_loss")
+        ax[1][0].plot(val_losses, 'r')
+        ax[1][1].set_title("val_hidden")
+        ax[1][1].plot(val_hidden, 'r')
+        ax[1][2].set_title("val_reconstruction")
+        ax[1][2].plot(val_ae, 'r')
+        fig.savefig("losses_{0}.png".format(self.lamda))
 
     def test(self, x, tfidf, y):
         x = x
@@ -169,16 +208,21 @@ class Solver():
             batch_idxs = list(BatchSampler(SequentialSampler(
                 range(data_size)), batch_size=self.batch_size, drop_last=False))
             losses = []
+            loss_hidden_list = []
+            loss_ae_list = []
             for batch_idx in batch_idxs:
                 batch_x1 = x[batch_idx, :].to(self.device)
                 batch_tfidf = tfidf[batch_idx].to(self.device)
                 batch_y = y[batch_idx].to(self.device)
                 x_hidden, y_hidden, y_predicted = self.model(
                     batch_x1, batch_tfidf, batch_y)
-                loss = self.loss(x_hidden, y_hidden,
-                                 y_predicted, batch_y)
+                loss_hidden, loss_ae = self.loss(x_hidden, y_hidden,
+                                                 y_predicted, batch_y)
+                loss = loss_hidden+self.lamda*loss_ae
                 losses.append(loss.item())
-        return np.mean(losses)
+                loss_hidden_list.append(loss_hidden.item())
+                loss_ae_list.append(loss_ae.item())
+        return np.mean(losses), np.mean(loss_hidden_list), np.mean(loss_ae_list)
 
     def load_model(self, path):
         print("=> loading checkpoint '{}'".format(path))
@@ -324,12 +368,12 @@ if __name__ == '__main__':
     # Building, training, and producing the new features by DCCA
     model = AttentionModel(input_size=input_size, embedding_size=embedding_size,
                            attention_layer_size=attention_layer_size, encoder_layer_size=encoder_layer_size,
-                           hidden_layer_size=hidden_layer_size, output_size=output_size, embedding_weight_matrix=embedding_weights).to(device)
-    # print(sum(p.numel() for p in model.parameters() if p.requires_grad))
+                           hidden_layer_size=hidden_layer_size, output_size=output_size,
+                           embedding_weight_matrix=embedding_weights).to(device)
     loss_func = Loss(outdim_size=hidden_layer_size, use_all_singular_values=use_all_singular_values,
-                     device=device, r1=r1, m=m, lamda=lamda).loss
+                     device=device, r1=r1, m=m).loss
     solver = Solver(model=model, loss=loss_func,
-                    outdim_size=output_size, params=params, device=device)
+                    outdim_size=output_size, params=params, lamda=lamda, device=device)
 
     check_path = f"{HOME}/checkpoints/checkpoint.model"
 
@@ -339,17 +383,21 @@ if __name__ == '__main__':
     solver.fit(X_train, train_tfidf, Y_train,
                X_val, tfidf_val, Y_val,
                checkpoint=check_path, load_model=False)
+
+    # Test data scores
     y_pred = solver.predict(X_test, test_tfidf)
     y_pred = to_numpy(y_pred)
-    Y_test = to_numpy(Y_test)
-    print("#########################")
-    print("P@1: ", p_k(y_pred, Y_test, 1))
-    print("P@3: ", p_k(y_pred, Y_test, 3))
-    print("P@5: ", p_k(y_pred, Y_test, 5))
-    print("#########################")
-    print("n@1: ", n_k(y_pred, Y_test, 1))
-    print("n@3: ", n_k(y_pred, Y_test, 3))
-    print("n@5: ", n_k(y_pred, Y_test, 5))
+    Y_act = to_numpy(Y_test)
+    print("Test data scores")
+    print_scores(y_pred, Y_act)
+
+    # Train data scores
+    y_pred = solver.predict(X_train, train_tfidf)
+    y_pred = to_numpy(y_pred)
+    Y_act = to_numpy(Y_train)
+    print("Train data scores")
+    print_scores(y_pred, Y_act)
+
     d = torch.load(check_path)
     solver.model.load_state_dict(d['model_state_dict'])
     solver.model.parameters()

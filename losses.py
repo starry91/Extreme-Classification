@@ -16,13 +16,12 @@ torch.manual_seed(1)
 
 
 class Loss():
-    def __init__(self, outdim_size, use_all_singular_values, device, r1, m, lamda):
+    def __init__(self, outdim_size, use_all_singular_values, device, r1, m):
         self.outdim_size = outdim_size
         self.use_all_singular_values = use_all_singular_values
         self.device = device
         self.r1 = r1
         self.m = m
-        self.lamda = lamda
 
     def reconstructingLoss(self, y_predicted, y_actual):
         loss = 0
@@ -134,7 +133,7 @@ class Loss():
         if print_flag:
             print("Hidden loss = {0}, Reconstruction Loss = {1}".format(
                 loss_hidden, loss_ae))
-        return (loss_hidden+self.lamda*loss_ae)
+        return loss_hidden, loss_ae
 
     def dccaLoss(self, x_hidden, y_hidden, y_predicted, y_actual, print_flag=False):
         loss_hidden = self.hidden_dcca(x_hidden, y_hidden)
@@ -142,4 +141,4 @@ class Loss():
         if print_flag:
             print("Hidden loss = {0}, Reconstruction Loss = {1}".format(
                 loss_hidden, loss_ae))
-        return (loss_hidden+self.lamda*loss_ae)
+        return loss_hidden, loss_ae

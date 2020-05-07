@@ -50,6 +50,17 @@ def n_k(y_predicted, y_actual, k):
     return res/y_predicted.shape[0]
 
 
+def print_scores(y_pred, Y_test):
+    print("#########################")
+    print("P@1: ", p_k(y_pred, Y_test, 1))
+    print("P@3: ", p_k(y_pred, Y_test, 3))
+    print("P@5: ", p_k(y_pred, Y_test, 5))
+    print("#########################")
+    print("n@1: ", n_k(y_pred, Y_test, 1))
+    print("n@3: ", n_k(y_pred, Y_test, 3))
+    print("n@5: ", n_k(y_pred, Y_test, 5))
+
+
 def get_matrix_from_txt(path, isSparse):
     if(isSparse):
         labels = data_utils.read_sparse_file('trn_X_Xf.txt', force_header=True)
