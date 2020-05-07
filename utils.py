@@ -123,14 +123,16 @@ def split_train_val(X, tfidf, Y):
 
 
 def prepare_tensors_from_data(X_train, Y_train):
-    X_data_new = np.array(X_train.shape)
+    X_data_new = np.zeros(X_train.shape)
     non_zero_indexes = X_data_new > 0
     X_data_new[non_zero_indexes] = 1
     X_TfIdftensor = torch.from_numpy(X_train[:, :, None])
     X_train = torch.from_numpy(X_data_new)
     Y_train = torch.from_numpy(Y_train)
+    X_train = X_train.type('torch.LongTensor')
     Y_train = Y_train.type('torch.FloatTensor')
     X_TfIdftensor = X_TfIdftensor.type('torch.FloatTensor')
+    print(X_train.shape, X_TfIdftensor.shape, Y_train.shape)
     return X_train, X_TfIdftensor, Y_train
 
 

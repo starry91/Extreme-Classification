@@ -91,6 +91,7 @@ class Solver():
             batch_idxs = list(BatchSampler(RandomSampler(
                 range(data_size)), batch_size=self.batch_size, drop_last=False))
 
+            temp_loss = []
             for batch_idx in batch_idxs:
                 self.optimizer.zero_grad()
                 batch_tfidf = tfidf[batch_idx].to(self.device)
@@ -100,10 +101,11 @@ class Solver():
                     batch_X_train, batch_tfidf, batch_Y_train)
                 loss = self.loss(x_hidden, y_hidden,
                                  y_predicted, batch_Y_train)
-                train_losses.append(loss.item())
+                temp_loss.append(loss.item())
                 loss.backward()
                 self.optimizer.step()
-            train_loss = np.mean(train_losses)
+            train_loss = np.mean(np.array(temp_loss))
+            train_losses.append(train_loss)
 
             info_string = "Epoch {:d}/{:d} - time: {:.2f} - training_loss: {:.4f}"
             if v_x is not None and v_y is not None:
@@ -265,20 +267,14 @@ if __name__ == '__main__':
     params['epoch_num'] = 100
     if(len(sys.argv) > 1):
         params['epoch_num'] = int(sys.argv[1])
-
-    params['batch_size'] = 128
-
-    #params['batch_size'] = 1024
-
+    params['batch_size'] = 256
     params['reg_par'] = 1e-5
 
     # the regularization parameter of the network
     # seems necessary to avoid the gradient exploding especially when non-saturating activations are used
     r1 = 5e-7
-    m = 1
+    m = 0.6
     lamda = 10
-    #m = 0.6
-    #lamda = 1
 
     # specifies if all the singular values should get used to calculate the correlation or just the top outdim_size ones
     # if one option does not work for a network or dataset, try the other one
@@ -286,7 +282,7 @@ if __name__ == '__main__':
 
     # end of parameters section
     # "/home/praveen.balireddy/XML"
-    HOME = "/home/neil/Documents/IIITH/sem4/Project/MTP2020-RankingXML-master"
+    HOME = "/home/praveen.balireddy/MTP2020-RankingXML"
 
     ###########  Mediamill/Delicious  ###########
 
@@ -305,13 +301,14 @@ if __name__ == '__main__':
 
     ###########  Eurlex-4k  ###########
     X_train, Y_train = load_data(
-        path=f"{HOME}/Eurlex/eurlex_train.txt", isTxt=True)
+        path=f"{HOME}/datasets/Eurlex/eurlex_train.txt", isTxt=True)
     X_test, Y_test = load_data(
-        path=f"{HOME}/Eurlex/eurlex_test.txt", isTxt=True)
+        path=f"{HOME}/datasets/Eurlex/eurlex_test.txt", isTxt=True)
 
-    #embedding_path = f"{HOME}/data/embedding_weights_eurlex.csv"
-    #embedding_weights = np.loadtxt(open(embedding_path, "rb"), delimiter=",", skiprows=1)
-    #embedding_weights = torch.from_numpy(embedding_weights)
+    embedding_path = f"{HOME}/data/embedding_weights_eurlex.csv"
+    embedding_weights = np.loadtxt(
+        open(embedding_path, "rb"), delimiter=",", skiprows=0)
+    embedding_weights = torch.from_numpy(embedding_weights)
 
     ###########  RCV  ###########
     # X_train, Y_train=load_data(

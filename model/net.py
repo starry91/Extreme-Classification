@@ -23,18 +23,27 @@ class FeatureEmbedding(nn.Module):
             self.embedding.load_state_dict({'weight': embedding_weight_matrix})
         # Attention Module
         self.attentionfc1 = nn.Linear(embedding_size,  attention_layer_size)
+        self.bn1 = nn.BatchNorm1d(input_size)
         self.attentionfc2 = nn.Linear(attention_layer_size, embedding_size)
+        self.bn2 = nn.BatchNorm1d(input_size)
         # fully connected layer
         self.featurefc1 = nn.Linear(embedding_size, hidden_layer_size)
 
     def forward(self, bow, tfidf):
+        # print("bow shape: {0}, tfidf shape: {1}".format(
+        #     bow.shape, tfidf.shape))
         word_embedding = self.embedding(bow)
+        # print("word embedding shape before: {0}".format(word_embedding.shape))
         word_embedding = tfidf * word_embedding
+        # print("word embedding shape before: {0}".format(word_embedding.shape))
         attention_embedding = word_embedding
-        attention_embedding = torch.relu(
-            self.attentionfc1(attention_embedding))
-        attention_embedding = torch.sigmoid(
-            self.attentionfc2(attention_embedding))
+        attention_embedding = self.attentionfc1(attention_embedding)
+        # print("attention embedding shape: {0}".format(
+        #     attention_embedding.shape))
+        attention_embedding = self.bn1(attention_embedding)
+        attention_embedding = torch.relu(attention_embedding)
+        attention_embedding = self.bn2(self.attentionfc2(attention_embedding))
+        attention_embedding = torch.sigmoid(attention_embedding)
         word_embedding = attention_embedding * word_embedding
         word_embedding = word_embedding.mean(1)
         x_hidden = torch.relu(self.featurefc1(word_embedding))
@@ -45,11 +54,17 @@ class Encoder(nn.Module):
     def __init__(self, output_size, encoder_layer_size, hidden_layer_size):
         super(Encoder, self).__init__()
         self.encoderfc1 = nn.Linear(output_size, encoder_layer_size)
+        self.bn1 = nn.BatchNorm1d(encoder_layer_size)
         self.encoderfc2 = nn.Linear(encoder_layer_size, hidden_layer_size)
+        self.bn2 = nn.BatchNorm1d(hidden_layer_size)
 
     def forward(self, labels):
-        y_hidden = torch.relu(self.encoderfc1(labels))
-        y_hidden = torch.relu(self.encoderfc2(y_hidden))
+        # print("Encoder labels size: {0}".format(labels.size()))
+        y_hidden = self.bn1(self.encoderfc1(labels))
+        y_hidden = torch.relu(y_hidden)
+        # print("Encoder labels size: {0}".format(labels.size()))
+        y_hidden = self.bn2(self.encoderfc2(y_hidden))
+        y_hidden = torch.relu(y_hidden)
         return y_hidden
 
 
@@ -57,16 +72,20 @@ class Decoder(nn.Module):
     def __init__(self, output_size, encoder_layer_size, hidden_layer_size):
         super(Decoder, self).__init__()
         self.decoderfc1 = nn.Linear(hidden_layer_size, encoder_layer_size)
+        self.bn1 = nn.BatchNorm1d(encoder_layer_size)
         self.decoderfc2 = nn.Linear(encoder_layer_size, output_size)
+        self.bn2 = nn.BatchNorm1d(output_size)
 
     def forward(self, y_hidden):
-        y_predicted = torch.relu(self.decoderfc1(y_hidden))
-        y_predicted = torch.sigmoid(self.decoderfc2(y_predicted))
+        y_predicted = self.bn1(self.decoderfc1(y_hidden))
+        y_predicted = torch.relu(y_predicted)
+        y_predicted = self.bn2(self.decoderfc2(y_predicted))
+        y_predicted = torch.sigmoid(y_predicted)
         return y_predicted
 
 
 class AttentionModel(nn.Module):
-    def __init__(self, input_size, embedding_size, attention_layer_size, encoder_layer_size, hidden_layer_size, output_size, embedding_weight_matrix = None):
+    def __init__(self, input_size, embedding_size, attention_layer_size, encoder_layer_size, hidden_layer_size, output_size, embedding_weight_matrix=None):
         super(AttentionModel, self).__init__()
         self.featureEmbedding = FeatureEmbedding(
             input_size, embedding_size, attention_layer_size, hidden_layer_size, embedding_weight_matrix)
