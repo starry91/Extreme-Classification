@@ -62,7 +62,7 @@ class Solver():
     def fit(self, X_train, tfidf, Y_train,
             v_x=None, v_tfidf=None, v_y=None,
             t_x=None, t_tfidf=None, t_y=None,
-            checkpoint='', load_model=False):
+            checkpoint='', load_checkpoint=False):
         """
         x1, x2 are the vectors needs to be make correlated
         dim=[batch_size, feats]
@@ -71,7 +71,9 @@ class Solver():
         Y_train = Y_train
         tfidf = tfidf
         data_size = X_train.size(0)
-
+        path_strings = checkpoint.split('/')
+        path_strings[-1] = "train_"+path_strings[-1]
+        train_check_path = '/'.join(path_strings)
         if v_x is not None and v_y is not None:
             best_val_loss = None
             v_x
@@ -82,7 +84,7 @@ class Solver():
             t_tfidf
             t_y
 
-        if(load_model):
+        if(load_checkpoint):
             self.start_epoch, loss = self.load_model(checkpoint)
 
         train_losses = []
@@ -147,13 +149,12 @@ class Solver():
                     else:
                         self.logger.info("Epoch {:d}: val_loss did not improve from {:.4f}".format(
                             self.start_epoch + 1, best_val_loss))
-            else:
-                torch.save({
-                    'epoch': self.start_epoch,
-                    'model_state_dict': self.model.state_dict(),
-                    'optimizer_state_dict': self.optimizer.state_dict(),
-                    'loss': loss,
-                }, checkpoint)
+            torch.save({
+                'epoch': self.start_epoch,
+                'model_state_dict': self.model.state_dict(),
+                'optimizer_state_dict': self.optimizer.state_dict(),
+                'loss': loss,
+            }, train_check_path)
             epoch_time = time.time() - epoch_start_time
             self.logger.info(info_string.format(
                 self.start_epoch + 1, self.epoch_num, epoch_time, train_loss))
@@ -270,32 +271,28 @@ if __name__ == '__main__':
 
     ### For mediamill ##
 
-    # input_size = 120
-    # output_size = 101
-    # embedding_size = 100
-    # attention_layer_size = 50
-    # encoder_layer_size = 120
-    # hidden_layer_size = 80
+    input_size = 120
+    output_size = 101
+    embedding_size = 100
+    attention_layer_size = 50
+    encoder_layer_size = 120
+    hidden_layer_size = 80
 
     ### For Delicious ##
     #input_size = 500
     #output_size = 983
-
-    #input_size = 120
-    #output_size = 101
-
     #embedding_size = 100
     #attention_layer_size = 50
     #encoder_layer_size = 120
     #hidden_layer_size = 80
 
     ### For Eurlex ##
-    input_size = 5000
-    output_size = 3993
-    embedding_size = 100
-    attention_layer_size = 25
-    encoder_layer_size = 600
-    hidden_layer_size = 200
+    # input_size = 5000
+    # output_size = 3993
+    # embedding_size = 100
+    # attention_layer_size = 25
+    # encoder_layer_size = 600
+    # hidden_layer_size = 200
 
     ### For RCV ##
     # input_size = 47236
@@ -307,11 +304,11 @@ if __name__ == '__main__':
 
     # the parameters for training the network
     params = dict()
-    params['learning_rate'] = 1e-3
+    params['learning_rate'] = 1e-2
     params['epoch_num'] = 100
     if(len(sys.argv) > 1):
         params['epoch_num'] = int(sys.argv[1])
-    params['batch_size'] = 256
+    params['batch_size'] = 512
     params['reg_par'] = 1e-5
 
     # the regularization parameter of the network
@@ -330,11 +327,11 @@ if __name__ == '__main__':
 
     ###########  Mediamill/Delicious  ###########
 
-    # X_train, Y_train, X_test, Y_test = load_small_data(
-    #     full_data_path=f"{HOME}/Mediamill/Mediamill_data.txt",
-    #     tr_path=f"{HOME}/Mediamill/mediamill_trSplit.txt",
-    #     tst_path=f"{HOME}/Mediamill/mediamill_trSplit.txt"
-    # )
+    X_train, Y_train, X_test, Y_test = load_small_data(
+        full_data_path=f"{HOME}/datasets/Mediamill/Mediamill_data.txt",
+        tr_path=f"{HOME}/datasets/Mediamill/mediamill_trSplit.txt",
+        tst_path=f"{HOME}/datasets/Mediamill/mediamill_trSplit.txt"
+    )
 
     # X_train, Y_train, X_test, Y_test = load_small_data(
     #     full_data_path=f"{HOME}/datasets/Delicious/Delicious_data.txt",
@@ -342,17 +339,18 @@ if __name__ == '__main__':
     #     tst_path=f"{HOME}datasets/Delicious/delicious_tstSplit.txt"
 
     embedding_weights = None
-
+    is_inference = False
+    is_training_inference = False
     ###########  Eurlex-4k  ###########
-    X_train, Y_train = load_data(
-        path=f"{HOME}/datasets/Eurlex/eurlex_train.txt", isTxt=True)
-    X_test, Y_test = load_data(
-        path=f"{HOME}/datasets/Eurlex/eurlex_test.txt", isTxt=True)
+    # X_train, Y_train = load_data(
+    #     path=f"{HOME}/datasets/Eurlex/eurlex_train.txt", isTxt=True)
+    # X_test, Y_test = load_data(
+    #     path=f"{HOME}/datasets/Eurlex/eurlex_test.txt", isTxt=True)
 
-    embedding_path = f"{HOME}/data/embedding_weights_eurlex.csv"
-    embedding_weights = np.loadtxt(
-        open(embedding_path, "rb"), delimiter=",", skiprows=0)
-    embedding_weights = torch.from_numpy(embedding_weights)
+    # embedding_path = f"{HOME}/data/embedding_weights_eurlex.csv"
+    # embedding_weights = np.loadtxt(
+    #     open(embedding_path, "rb"), delimiter=",", skiprows=0)
+    # embedding_weights = torch.from_numpy(embedding_weights)
 
     ###########  RCV  ###########
     # X_train, Y_train=load_data(
@@ -375,14 +373,17 @@ if __name__ == '__main__':
     solver = Solver(model=model, loss=loss_func,
                     outdim_size=output_size, params=params, lamda=lamda, device=device)
 
-    check_path = f"{HOME}/checkpoints/checkpoint.model"
+    if((not is_inference) or (not is_training_inference)):
+        check_path = f"{HOME}/checkpoints/checkpoint.model"
+    else:
+        check_path = f"{HOME}/checkpoints/train_checkpoint.model"
 
-    #check_path = "/home/praveen.balireddy/XML/checkpoints/checkpoint.model"
-
-    # check_path = "./checkpoint.model"
-    solver.fit(X_train, train_tfidf, Y_train,
-               X_val, tfidf_val, Y_val,
-               checkpoint=check_path, load_model=False)
+    if(not is_inference):
+        solver.fit(X_train, train_tfidf, Y_train,
+                   X_val, tfidf_val, Y_val,
+                   checkpoint=check_path, load_checkpoint=False)
+    else:
+        solver.load_model(check_path)
 
     # Test data scores
     y_pred = solver.predict(X_test, test_tfidf)
