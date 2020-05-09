@@ -274,9 +274,9 @@ if __name__ == '__main__':
     input_size = 120
     output_size = 101
     embedding_size = 100
-    attention_layer_size = 50
-    encoder_layer_size = 120
-    hidden_layer_size = 80
+    attention_layer_size = 25
+    encoder_layer_size = 150
+    hidden_layer_size = 100
 
     ### For Delicious ##
     #input_size = 500
@@ -309,13 +309,13 @@ if __name__ == '__main__':
     if(len(sys.argv) > 1):
         params['epoch_num'] = int(sys.argv[1])
     params['batch_size'] = 512
-    params['reg_par'] = 1e-5
+    params['reg_par'] = 1e-8
 
     # the regularization parameter of the network
     # seems necessary to avoid the gradient exploding especially when non-saturating activations are used
     r1 = 5e-7
-    m = 0.6
-    lamda = 10
+    m = 10
+    lamda = 20
 
     # specifies if all the singular values should get used to calculate the correlation or just the top outdim_size ones
     # if one option does not work for a network or dataset, try the other one
@@ -323,14 +323,15 @@ if __name__ == '__main__':
 
     # end of parameters section
     # "/home/praveen.balireddy/XML"
-    HOME = "/home/praveen.balireddy/MTP2020-RankingXML"
+    # HOME = "/home/praveen.balireddy/MTP2020-RankingXML"
+    HOME = "/home/praveen/Desktop/iiith-assignments/ExtremeClassification/MTP2020-RankingXML"
 
     ###########  Mediamill/Delicious  ###########
 
     X_train, Y_train, X_test, Y_test = load_small_data(
         full_data_path=f"{HOME}/datasets/Mediamill/Mediamill_data.txt",
         tr_path=f"{HOME}/datasets/Mediamill/mediamill_trSplit.txt",
-        tst_path=f"{HOME}/datasets/Mediamill/mediamill_trSplit.txt"
+        tst_path=f"{HOME}/datasets/Mediamill/mediamill_tstSplit.txt"
     )
 
     # X_train, Y_train, X_test, Y_test = load_small_data(
@@ -339,7 +340,7 @@ if __name__ == '__main__':
     #     tst_path=f"{HOME}datasets/Delicious/delicious_tstSplit.txt"
 
     embedding_weights = None
-    is_inference = False
+    is_inference = True
     is_training_inference = False
     ###########  Eurlex-4k  ###########
     # X_train, Y_train = load_data(
