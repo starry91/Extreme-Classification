@@ -18,6 +18,7 @@ import torch
 from model.net import AttentionModel
 from losses import Loss
 import sys
+from configparser import ConfigParser, ExtendedInterpolation
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.use('Agg')
@@ -165,7 +166,8 @@ class Solver():
                                  np.array(train_loss_ae_list),
                                  np.array(val_losses),
                                  np.array(val_loss_hidden_list),
-                                 np.array(val_loss_ae_list),)
+                                 np.array(val_loss_ae_list),
+                                 self.start_epoch)
 
         checkpoint_ = torch.load(checkpoint)['model_state_dict']
         self.model.load_state_dict(checkpoint_)
@@ -178,7 +180,11 @@ class Solver():
             self.logger.info('loss on test data: {:.4f}'.format(loss))
 
     def save_loss_plots(self, train_losses, train_hidden, train_ae,
-                        val_losses, val_hidden, val_ae):
+                        val_losses, val_hidden, val_ae, epoch):
+        if(epoch <= 50):
+            fig_name = "losses_50_{0}.png".format(self.lamda)
+        else:
+            fig_name = "losses_{0}.png".format(self.lamda)
         fig, ax = plt.subplots(2, 3)
         fig.set_size_inches((30, 18))
         fig.suptitle("losses_{0}".format(self.lamda), fontsize=20)
@@ -197,7 +203,7 @@ class Solver():
         ax[1][1].plot(val_hidden, 'r')
         ax[1][2].set_title("val_reconstruction")
         ax[1][2].plot(val_ae, 'r')
-        fig.savefig("losses_{0}.png".format(self.lamda))
+        fig.savefig(fig_name)
 
     def test(self, x, tfidf, y):
         x = x
@@ -253,111 +259,45 @@ class Solver():
 
 
 if __name__ == '__main__':
-
-    # wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=0B3lPMIHmG6vGU0VTR1pCejFpWjg' -O Eurlex.zip
-
-    # wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=0B3lPMIHmG6vGdnEzRWZWQWJMRnc' -O RCV1-x.zip
-    # wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=0B3lPMIHmG6vGdG1jZ19VS2NWRVU' -O Delicious.zip
-
-    ############
-    # Parameters Section
-    # mpl_logger = logging.getLogger("matplotlib")
-    # mpl_logger.setLevel(logging.INFO)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("device", device)
     print("Using", torch.cuda.device_count(), "GPUs")
 
+    config = ConfigParser(
+        allow_no_value=True, interpolation=ExtendedInterpolation())
+    config.read('params.config')
+    dataset = config['COMMON']['dataset']
+    dataset_conf = config[dataset]
     # the size of the new space learned by the model (number of the new features)
-
-    ### For mediamill ##
-
-    input_size = 120
-    output_size = 101
-    embedding_size = 100
-    attention_layer_size = 25
-    encoder_layer_size = 150
-    hidden_layer_size = 100
-
-    ### For Delicious ##
-    #input_size = 500
-    #output_size = 983
-    #embedding_size = 100
-    #attention_layer_size = 50
-    #encoder_layer_size = 120
-    #hidden_layer_size = 80
-
-    ### For Eurlex ##
-    # input_size = 5000
-    # output_size = 3993
-    # embedding_size = 100
-    # attention_layer_size = 25
-    # encoder_layer_size = 600
-    # hidden_layer_size = 200
-
-    ### For RCV ##
-    # input_size = 47236
-    # output_size = 2456
-    # embedding_size = 100
-    # attention_layer_size = 25
-    # encoder_layer_size = 600
-    # hidden_layer_size = 200
+    input_size = int(dataset_conf['input_size'])
+    output_size = int(dataset_conf['output_size'])
+    embedding_size = int(dataset_conf['embedding_size'])
+    attention_layer_size = int(dataset_conf['attention_layer_size'])
+    encoder_layer_size = int(dataset_conf['encoder_layer_size'])
+    hidden_layer_size = int(dataset_conf['hidden_layer_size'])
 
     # the parameters for training the network
     params = dict()
-    params['learning_rate'] = 1e-2
-    params['epoch_num'] = 100
-    if(len(sys.argv) > 1):
-        params['epoch_num'] = int(sys.argv[1])
-    params['batch_size'] = 512
-    params['reg_par'] = 1e-8
+    params['learning_rate'] = float(dataset_conf['learning_rate'])
+    params['epoch_num'] = int(dataset_conf['epoch_num'])
+    params['batch_size'] = int(dataset_conf['batch_size'])
+    params['reg_par'] = float(dataset_conf['reg_par'])
 
-    # the regularization parameter of the network
-    # seems necessary to avoid the gradient exploding especially when non-saturating activations are used
-    r1 = 5e-7
-    m = 10
-    lamda = 20
+    r1 = float(dataset_conf['r1'])
+    m = float(dataset_conf['m'])
+    lamda = int(dataset_conf['lamda'])
+    use_all_singular_values = dataset_conf.getboolean(
+        'use_all_singular_values')
 
-    # specifies if all the singular values should get used to calculate the correlation or just the top outdim_size ones
-    # if one option does not work for a network or dataset, try the other one
-    use_all_singular_values = False
+    X_train, Y_train, X_test, Y_test = load_data(dataset,
+                                                 dataset_conf['full_path'],
+                                                 dataset_conf['train_path'],
+                                                 dataset_conf['test_path'])
 
-    # end of parameters section
-    # "/home/praveen.balireddy/XML"
-    # HOME = "/home/praveen.balireddy/MTP2020-RankingXML"
-    HOME = "/home/praveen/Desktop/iiith-assignments/ExtremeClassification/MTP2020-RankingXML"
-
-    ###########  Mediamill/Delicious  ###########
-
-    X_train, Y_train, X_test, Y_test = load_small_data(
-        full_data_path=f"{HOME}/datasets/Mediamill/Mediamill_data.txt",
-        tr_path=f"{HOME}/datasets/Mediamill/mediamill_trSplit.txt",
-        tst_path=f"{HOME}/datasets/Mediamill/mediamill_tstSplit.txt"
-    )
-
-    # X_train, Y_train, X_test, Y_test = load_small_data(
-    #     full_data_path=f"{HOME}/datasets/Delicious/Delicious_data.txt",
-    #     tr_path=f"{HOME}/datasets/Delicious/delicious_trSplit.txt",
-    #     tst_path=f"{HOME}datasets/Delicious/delicious_tstSplit.txt"
-
-    embedding_weights = None
-    is_inference = True
-    is_training_inference = False
-    ###########  Eurlex-4k  ###########
-    # X_train, Y_train = load_data(
-    #     path=f"{HOME}/datasets/Eurlex/eurlex_train.txt", isTxt=True)
-    # X_test, Y_test = load_data(
-    #     path=f"{HOME}/datasets/Eurlex/eurlex_test.txt", isTxt=True)
-
-    # embedding_path = f"{HOME}/data/embedding_weights_eurlex.csv"
-    # embedding_weights = np.loadtxt(
-    #     open(embedding_path, "rb"), delimiter=",", skiprows=0)
-    # embedding_weights = torch.from_numpy(embedding_weights)
-
-    ###########  RCV  ###########
-    # X_train, Y_train=load_data(
-    #     path=f"{HOME}/datasets/RCV1-x/rcv1x_train.txt", isTxt=True)
-    # X_test, Y_test=load_data(
-    #     path=f"{HOME}/datasets/RCV1-x/rcv1x_test.txt", isTxt=True)
+    is_inference = dataset_conf.getboolean('is_inference')
+    is_training_inference = dataset_conf.getboolean('is_training_inference')
+    embedding_weights = load_embeddings(dataset_conf['embedding_path'])
+    check_path = dataset_conf['check_path']
 
     ### Common code from here #########
     X_train, train_tfidf, Y_train = prepare_tensors_from_data(X_train, Y_train)
@@ -374,10 +314,10 @@ if __name__ == '__main__':
     solver = Solver(model=model, loss=loss_func,
                     outdim_size=output_size, params=params, lamda=lamda, device=device)
 
-    if((not is_inference) or (not is_training_inference)):
-        check_path = f"{HOME}/checkpoints/checkpoint.model"
-    else:
-        check_path = f"{HOME}/checkpoints/train_checkpoint.model"
+    if(is_inference and is_training_inference):
+        path_strings = check_path.split('/')
+        path_strings[-1] = "train_"+path_strings[-1]
+        check_path = '/'.join(path_strings)
 
     if(not is_inference):
         solver.fit(X_train, train_tfidf, Y_train,

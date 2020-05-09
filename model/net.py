@@ -96,7 +96,7 @@ class Decoder(nn.Module):
         y_predicted = torch.relu(y_predicted)
         # y_predicted = self.d1(y_predicted)
         y_predicted = self.bn2(self.decoderfc2(y_predicted))
-        y_predicted = torch.relu(y_predicted)
+        # y_predicted = torch.relu(y_predicted)
         return y_predicted
 
 

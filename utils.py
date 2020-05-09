@@ -61,19 +61,15 @@ def print_scores(y_pred, Y_test):
     print("n@5: ", n_k(y_pred, Y_test, 5))
 
 
-def get_matrix_from_txt(path, isSparse):
-    if(isSparse):
-        labels = data_utils.read_sparse_file('trn_X_Xf.txt', force_header=True)
+def get_matrix_from_txt(path):
     features, labels, num_samples, num_features, num_labels = data_utils.read_data(
         path)
-
     return features.toarray(), labels.toarray().astype('int')
 
 
 def load_rcv_data(path):
     features, labels, num_samples, num_features, num_labels = data_utils.read_data(
         path)
-
     return features, labels
 
 
@@ -113,14 +109,36 @@ def load_small_data(full_data_path, tr_path, tst_path):
     return train_X, train_Y, test_X, test_Y
 
 
-def load_data(path, isTxt=False, isSparse=False):
-    """loads the data and converts to numpy arrays"""
-    print('loading data ...')
-    if(not isTxt):
-        X_train, Y_train = get_data(path)
-    else:
-        X_train, Y_train = get_matrix_from_txt(path, isSparse)
-    return X_train, Y_train
+# def load_data(path, isTxt=False, isSparse=False):
+#     """loads the data and converts to numpy arrays"""
+#     print('loading data ...')
+#     if(not isTxt):
+#         X_train, Y_train = get_data(path)
+#     else:
+#         X_train, Y_train = get_matrix_from_txt(path, isSparse)
+#     return X_train, Y_train
+
+
+def load_data(dataset_name, full_path, train_path, test_path):
+    if(dataset_name in ['DELICIOUS', 'MEDIAMILL']):
+        X_train, Y_train, X_test, Y_test = load_small_data(
+            full_data_path=full_path,
+            tr_path=train_path,
+            tst_path=test_path
+        )
+    if(dataset_name in ['EURLEX', 'RCV']):
+        X_train, Y_train = get_matrix_from_txt(path=train_path)
+        X_test, Y_test = get_matrix_from_txt(path=test_path)
+    return X_train, Y_train, X_test, Y_test
+
+
+def load_embeddings(embedding_path):
+    if(embedding_path is None):
+        return None
+    embedding_weights = np.loadtxt(
+        open(embedding_path, "rb"), delimiter=",", skiprows=0)
+    embedding_weights = torch.from_numpy(embedding_weights)
+    return embedding_weights
 
 
 def split_train_val(X, tfidf, Y):
