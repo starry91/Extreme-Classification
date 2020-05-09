@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 
-
-with open('eurlex-ev-fold2-train.arff', 'r') as fp:
+filename = 'eurlex-ev-fold2-train.arff'
+filename = 'delicious-test.arff'
+with open(filen_name, 'r') as fp:
     file_content = fp.readlines()
 
 
