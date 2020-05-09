@@ -68,9 +68,6 @@ class Solver():
         x1, x2 are the vectors needs to be make correlated
         dim=[batch_size, feats]
         """
-        X_train = X_train
-        Y_train = Y_train
-        tfidf = tfidf
         data_size = X_train.size(0)
         path_strings = checkpoint.split('/')
         path_strings[-1] = "train_"+path_strings[-1]
@@ -168,6 +165,13 @@ class Solver():
                                  np.array(val_loss_hidden_list),
                                  np.array(val_loss_ae_list),
                                  self.start_epoch)
+            if(self.start_epoch == 50):
+                train_losses = []
+                train_loss_hidden_list = []
+                train_loss_ae_list = []
+                val_losses = []
+                val_loss_hidden_list = []
+                val_loss_ae_list = []
 
         checkpoint_ = torch.load(checkpoint)['model_state_dict']
         self.model.load_state_dict(checkpoint_)

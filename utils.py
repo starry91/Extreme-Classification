@@ -109,16 +109,6 @@ def load_small_data(full_data_path, tr_path, tst_path):
     return train_X, train_Y, test_X, test_Y
 
 
-# def load_data(path, isTxt=False, isSparse=False):
-#     """loads the data and converts to numpy arrays"""
-#     print('loading data ...')
-#     if(not isTxt):
-#         X_train, Y_train = get_data(path)
-#     else:
-#         X_train, Y_train = get_matrix_from_txt(path, isSparse)
-#     return X_train, Y_train
-
-
 def load_data(dataset_name, full_path, train_path, test_path):
     if(dataset_name in ['DELICIOUS', 'MEDIAMILL']):
         X_train, Y_train, X_test, Y_test = load_small_data(
@@ -156,7 +146,7 @@ def split_train_val(X, tfidf, Y):
 
 def prepare_tensors_from_data(X_train, Y_train):
     X_data_new = np.zeros(X_train.shape)
-    non_zero_indexes = X_data_new > 0
+    non_zero_indexes = np.nonzero(X_train)
     X_data_new[non_zero_indexes] = 1
     X_TfIdftensor = torch.from_numpy(X_train[:, :, None])
     X_train = torch.from_numpy(X_data_new)
