@@ -4,7 +4,7 @@
 
 Downloaded the EURlex data from [link](http://sourceforge.net/projects/mulan/files/datasets/eurlex-eurovoc-descriptors.rar)
 
-Number of Words found in Glove: 3225 words
+__Number of Words found in Glove: 3225 words__
 
 - Extract files
 - Extract 5000 words
@@ -14,7 +14,7 @@ Number of Words found in Glove: 3225 words
 
 Downloaded data from [link](http://sourceforge.net/projects/mulan/files/datasets/delicious.rar)
 
-Number of words found in Glove: 438 Words
+__Number of words found in Glove: 438 Words__
 
 - Extract files
 - Extract 500 words
