@@ -19,6 +19,7 @@ from model.net import AttentionModel
 from losses import Loss
 import sys
 from configparser import ConfigParser, ExtendedInterpolation
+from modelsummary import summary
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.use('Agg')
@@ -91,17 +92,15 @@ class Solver():
         val_losses = []
         val_loss_hidden_list = []
         val_loss_ae_list = []
+        self.model.train()
         while(self.start_epoch < self.epoch_num):
             epoch_start_time = time.time()
-            self.model.train()
             batch_idxs = list(BatchSampler(RandomSampler(
                 range(data_size)), batch_size=self.batch_size, drop_last=False))
-
             temp_loss = []
             temp_loss_hidden = []
             temp_loss_ae = []
             for batch_idx in batch_idxs:
-                self.optimizer.zero_grad()
                 batch_tfidf = tfidf[batch_idx].to(self.device)
                 batch_X_train = X_train[batch_idx, :].to(self.device)
                 batch_Y_train = Y_train[batch_idx, :].to(self.device)
@@ -113,6 +112,7 @@ class Solver():
                 temp_loss.append(loss.item())
                 temp_loss_hidden.append(loss_hidden.item())
                 temp_loss_ae.append(loss_ae.item())
+                self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
             train_loss = np.mean(np.array(temp_loss))
@@ -210,9 +210,6 @@ class Solver():
         fig.savefig(fig_name)
 
     def test(self, x, tfidf, y):
-        x = x
-        tfidf = tfidf
-        y = y
         with torch.no_grad():
             self.model.eval()
             data_size = x.shape[0]
@@ -235,6 +232,52 @@ class Solver():
                 loss_ae_list.append(loss_ae.item())
         return np.mean(losses), np.mean(loss_hidden_list), np.mean(loss_ae_list)
 
+    def check(self, x, tfidf, y):
+        '''
+        For debug purposes
+        '''
+        with torch.no_grad():
+            self.model.eval()
+            data_size = x.shape[0]
+            batch_idxs = list(BatchSampler(SequentialSampler(
+                range(data_size)), batch_size=self.batch_size, drop_last=False))
+            losses = []
+            loss_hidden_list = []
+            loss_ae_list = []
+            for batch_idx in batch_idxs:
+                batch_x1 = x[batch_idx, :].to(self.device)
+                batch_tfidf = tfidf[batch_idx].to(self.device)
+                batch_y = y[batch_idx].to(self.device)
+                x_hidden, y_hidden, y_predicted = self.model(
+                    batch_x1, batch_tfidf, batch_y)
+                print("########################################################")
+                print("X_HIDDEN: ", x_hidden)
+                print("Y_HIDDEN: ", y_hidden)
+                print("Y_HIDDEN: ", y_predicted)
+                print("Reconstruction loss from model call: ", Loss(outdim_size=self.outdim_size, use_all_singular_values=False,
+                                                                    device=self.device, r1=0.7, m=10).reconstructingLoss(y_predicted, batch_y).item())
+                x_hidden1, y_predicted1 = self.model.get_values(
+                    batch_x1, batch_tfidf)
+                print("Reconstruction loss from model predict: ", Loss(outdim_size=self.outdim_size, use_all_singular_values=False,
+                                                                       device=self.device, r1=0.7, m=10).reconstructingLoss(y_predicted1, batch_y).item())
+                print("X_HIDDEN: ", x_hidden)
+                print("Y_HIDDEN: ", y_hidden)
+                print("Y_PRED_fromY: ", y_predicted)
+                print("Y_PRED_fromX: ", y_predicted1)
+                if(not torch.equal(x_hidden, x_hidden1)):
+                    print("INEQUAL XHIDDEN")
+                loss_hidden, loss_ae = self.loss(x_hidden, y_hidden,
+                                                 y_predicted, batch_y)
+                print("Loss AE: ", loss_ae.item())
+                print("Loss HIDDEN {0} lossae: {1}".format(
+                    loss_hidden.item(), loss_ae.item()))
+                loss = loss_hidden+self.lamda*loss_ae
+                print("TOT LOSS {0}".format(loss.item()))
+                losses.append(loss.item())
+                loss_hidden_list.append(loss_hidden.item())
+                loss_ae_list.append(loss_ae.item())
+        return np.mean(losses), np.mean(loss_hidden_list), np.mean(loss_ae_list)
+
     def load_model(self, path):
         print("=> loading checkpoint '{}'".format(path))
         checkpoint_ = torch.load(path)
@@ -245,7 +288,6 @@ class Solver():
         return start_epoch, loss
 
     def predict(self, X_test, tfidf):
-        tfidf = tfidf
         bow = X_test
         with torch.no_grad():
             self.model.eval()
@@ -260,6 +302,10 @@ class Solver():
                 outputs1.append(o1)
         outputs = torch.cat(outputs1, dim=0)
         return outputs
+
+    def print_model_summary(self, X, tfidf, Y):
+        summary(self.model, X.to(device), tfidf.to(device),
+                Y.to(device), batch_size=self.batch_size, show_input=True)
 
 
 if __name__ == '__main__':
@@ -289,7 +335,9 @@ if __name__ == '__main__':
 
     r1 = float(dataset_conf['r1'])
     m = float(dataset_conf['m'])
+    print("m: ", m)
     lamda = int(dataset_conf['lamda'])
+    print("m: ", lamda)
     use_all_singular_values = dataset_conf.getboolean(
         'use_all_singular_values')
 
@@ -343,7 +391,13 @@ if __name__ == '__main__':
     Y_act = to_numpy(Y_train)
     print("Train data scores")
     print_scores(y_pred, Y_act)
-
-    d = torch.load(check_path)
-    solver.model.load_state_dict(d['model_state_dict'])
-    solver.model.parameters()
+    # print(y_pred[:10, :])
+    # print(Y_act[:10, :])
+    # print(np.unique(y_pred[:10, :], return_counts=True))
+    # print(np.unique(Y_act[:10, :], return_counts=True))
+    # print(Loss(outdim_size=hidden_layer_size, use_all_singular_values=use_all_singular_values,
+    #            device=device, r1=r1, m=m).reconstructingLoss(make_tensor(y_pred), make_tensor(Y_act)).item())
+    # print(solver.test(X_train, train_tfidf, Y_train))
+    # print("******************************Decoder weights********************** ")
+    # for param in solver.model.decoder.parameters():
+    #     print(param.data)

@@ -158,12 +158,11 @@ def prepare_tensors_from_data(X_train, Y_train):
     return X_train, X_TfIdftensor, Y_train
 
 
-def make_tensor(data_xy):
+def make_tensor(data):
     """converts the input to numpy arrays"""
-    data_x, data_y = data_xy
-    data_x = torch.tensor(data_x)
-    data_y = np.asarray(data_y, dtype='int32')
-    return data_x, data_y
+    temp = torch.from_numpy(data)
+    temp = temp.type('torch.FloatTensor')
+    return temp
 
 
 def to_numpy(tensor):

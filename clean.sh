@@ -2,5 +2,5 @@
 
 rm slurm*
 rm XML.log
-rm loss.png
+rm losses_*.png
 rm output.txt
