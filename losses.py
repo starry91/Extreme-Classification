@@ -6,7 +6,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 import pandas as pd
 from torch import optim
 import numpy as np
-from torchviz import make_dot
+# from torchviz import make_dot
 from scipy.io.arff import loadarff
 import math
 import os
