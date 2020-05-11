@@ -33,8 +33,14 @@ def constructWeightMatrix(filename, datafile, embd_dim):
     glove = {w: vectors[word2idx[w]] for w in words}
 
     # Reading the word list
-    with open(datafile, newline='') as csvfile:
-        words = list(csv.reader(csvfile))
+    # with open(datafile, newline='') as csvfile:
+    #     words = list(csv.reader(csvfile))
+    filename = 'wiki10-31K_feature_map.txt'
+    with open(filename) as file_in:
+        words = []
+        for line in file_in:
+            words.append(line)
+    words = [x.strip() for x in words] 
     matrix_len = len(words)
     weights_matrix = np.zeros((matrix_len, embd_dim))
     words_found = 0
