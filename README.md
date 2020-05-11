@@ -103,8 +103,8 @@ decoder.
 
 ### losses.py
 The file losses.py has the implementation  of $L(D)$ which is:
-![Loss function](Screenshot from 2020-05-11 23-57-55.png)
 
+![Loss function](Screenshot from 2020-05-11 23-57-55.png)
 ![L_ae](Screenshot from 2020-05-11 23-58-11.png)
 
 ### Instruction to execute the code
