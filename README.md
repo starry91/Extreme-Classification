@@ -18,6 +18,7 @@ batch_size = 256
 m = 10
 lamda = 1
 ```
+Rest can be found in the params.config file
 
 ## Model Details
 
@@ -58,7 +59,6 @@ Non-trainable params: 0
 
 ```
 
-Rest can be found in the params.config file
 ## Solver Class
 
 It takes model object, loss function, parameters and lambda as input Following functions are defined in Solver class:
@@ -74,14 +74,14 @@ The file losses.py has the implementation  of $L(D)$ which is:
 
 **Learning Common Embedding (Lh):** We employ the mean squared loss for $L_h$ 
 
-![Loss function](https://github.com/misterpawan/MTP2020-RankingXML/blob/master/Screenshot%20from%202020-05-11%2023-57-55.png)
+![Loss function](https://github.com/misterpawan/MTP2020-RankingXML/blob/master/ss/1.png)
 
 
 **Reconstructing Output (Lae):** 
 
 
 
-![L_ae](https://github.com/misterpawan/MTP2020-RankingXML/blob/master/Screenshot%20from%202020-05-11%2023-58-11.png)
+![L_ae](https://github.com/misterpawan/MTP2020-RankingXML/blob/master/ss/2.png)
 
 wherein N(y) is the set of negative label indexes, P(y) is the complement ofN(y), and margin m ∈ [0, 1] is a hyper-parameter for controlling the mini- mal distance between positive and negative labels. The loss consists of two parts: 1) LP targets to raise the minimal score from positive labels over all negative labels at least by m; 2) LN aims to penalize the most violated negative label under all positive labels by m.
 
