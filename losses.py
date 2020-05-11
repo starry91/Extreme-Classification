@@ -128,17 +128,9 @@ class Loss():
     def loss(self, x_hidden, y_hidden, y_predicted, y_actual, print_flag=False):
         loss_hidden = self.hiddenLoss(x_hidden, y_hidden)
         loss_ae = self.reconstructingLoss(y_predicted, y_actual)
-        # print("loss_hidden: ", loss_hidden)
-        # print("loss_ae: ", loss_ae)
-        if print_flag:
-            print("Hidden loss = {0}, Reconstruction Loss = {1}".format(
-                loss_hidden, loss_ae))
         return loss_hidden, loss_ae
 
     def dccaLoss(self, x_hidden, y_hidden, y_predicted, y_actual, print_flag=False):
         loss_hidden = self.hidden_dcca(x_hidden, y_hidden)
         loss_ae = self.reconstructingLoss(y_predicted, y_actual)
-        if print_flag:
-            print("Hidden loss = {0}, Reconstruction Loss = {1}".format(
-                loss_hidden, loss_ae))
         return loss_hidden, loss_ae

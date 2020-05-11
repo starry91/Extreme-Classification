@@ -17,6 +17,9 @@ np.random.seed(1)
 
 class FeatureEmbedding(nn.Module):
     def __init__(self, input_size, embedding_size, attention_layer_size, hidden_layer_size, embedding_weight_matrix):
+        '''
+        Feature Embedding module of the architecture
+        '''
         super(FeatureEmbedding, self).__init__()
         self.embedding = nn.Embedding(input_size, embedding_size)
         if embedding_weight_matrix is not None:
@@ -28,10 +31,12 @@ class FeatureEmbedding(nn.Module):
         # self.d1 = nn.Dropout(p=0.2)
         self.attentionfc2 = nn.Linear(attention_layer_size, embedding_size)
         nn.init.kaiming_normal_(self.attentionfc2.weight, mode='fan_in')
-        self.bn2 = nn.BatchNorm1d(input_size)
+        # self.bn2 = nn.BatchNorm1d(input_size)
         # self.d2 = nn.Dropout(p=0.2)
         self.featurefc1 = nn.Linear(embedding_size, hidden_layer_size)
         nn.init.kaiming_normal_(self.featurefc1.weight, mode='fan_in')
+        self.ReLU = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, bow, tfidf):
         word_embedding = self.embedding(bow)
@@ -39,19 +44,23 @@ class FeatureEmbedding(nn.Module):
         attention_embedding = word_embedding
         attention_embedding = self.attentionfc1(attention_embedding)
         attention_embedding = self.bn1(attention_embedding)
-        attention_embedding = torch.relu(attention_embedding)
+        attention_embedding = self.ReLU(attention_embedding)
         # attention_embedding = self.d1(attention_embedding)
         attention_embedding = self.attentionfc2(attention_embedding)
-        attention_embedding = torch.sigmoid(attention_embedding)
+        # attention_embedding = self.bn2(attention_embedding)
+        attention_embedding = self.sigmoid(attention_embedding)
         # attention_embedding = self.d2(attention_embedding)
         word_embedding = attention_embedding * word_embedding
         word_embedding = word_embedding.mean(1)
-        x_hidden = torch.relu(self.featurefc1(word_embedding))
+        x_hidden = self.sigmoid(self.featurefc1(word_embedding))
         return x_hidden
 
 
 class Encoder(nn.Module):
     def __init__(self, output_size, encoder_layer_size, hidden_layer_size):
+        '''
+        Encoder module of the architecture
+        '''
         super(Encoder, self).__init__()
         self.encoderfc1 = nn.Linear(output_size, encoder_layer_size)
         nn.init.kaiming_normal_(self.encoderfc1.weight, mode='fan_in')
@@ -61,15 +70,17 @@ class Encoder(nn.Module):
         nn.init.kaiming_normal_(self.encoderfc2.weight, mode='fan_in')
         # self.bn2 = nn.BatchNorm1d(hidden_layer_size)
         # self.d2 = nn.Dropout(p=0.2)
+        self.ReLU = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, labels):
         # print("Encoder labels size: {0}".format(labels.size()))
         y_hidden = self.encoderfc1(labels)
         y_hidden = self.bn1(y_hidden)
-        y_hidden = torch.relu(y_hidden)
+        y_hidden = self.ReLU(y_hidden)
         # y_hidden = self.d1(y_hidden)
         y_hidden = self.encoderfc2(y_hidden)
-        y_hidden = torch.sigmoid(y_hidden)
+        y_hidden = self.sigmoid(y_hidden)
         # y_hidden = self.d2(y_hidden)
         return y_hidden
 
@@ -77,6 +88,9 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     def __init__(self, output_size, encoder_layer_size, hidden_layer_size):
         super(Decoder, self).__init__()
+        '''
+        Decoder module of the architecture
+        '''
         self.decoderfc1 = nn.Linear(hidden_layer_size, encoder_layer_size)
         nn.init.kaiming_normal_(self.decoderfc1.weight, mode='fan_in')
         self.bn1 = nn.BatchNorm1d(encoder_layer_size)
@@ -84,21 +98,26 @@ class Decoder(nn.Module):
         self.decoderfc2 = nn.Linear(encoder_layer_size, output_size)
         nn.init.kaiming_normal_(self.decoderfc2.weight, mode='fan_in')
         # self.bn2 = nn.BatchNorm1d(output_size)
+        self.ReLU = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, y_hidden):
         y_predicted = self.decoderfc1(y_hidden)
         y_predicted = self.bn1(y_predicted)
-        y_predicted = torch.relu(y_predicted)
+        y_predicted = self.sigmoid(y_predicted)
         # y_predicted = self.d1(y_predicted)
         y_predicted = self.decoderfc2(y_predicted)
-        # y_predicted = torch.sigmoid(y_predicted)
-        # y_predicted = torch.relu(y_predicted)
+        # y_predicted = self.sigmoid(y_predicted)
+        # y_predicted = self.ReLU(y_predicted)
         return y_predicted
 
 
 class AttentionModel(nn.Module):
     def __init__(self, input_size, embedding_size, attention_layer_size, encoder_layer_size, hidden_layer_size, output_size, embedding_weight_matrix=None):
         super(AttentionModel, self).__init__()
+        '''
+        Entire model architecture
+        '''
         self.featureEmbedding = FeatureEmbedding(
             input_size, embedding_size, attention_layer_size, hidden_layer_size, embedding_weight_matrix)
         self.encoder = Encoder(
@@ -113,11 +132,17 @@ class AttentionModel(nn.Module):
         return x_hidden, y_hidden, y_predicted
 
     def predict(self, bow, tfidf):
+        '''
+        Called during inference
+        '''
         x_hidden = self.featureEmbedding(bow, tfidf)
         y_predicted = self.decoder(x_hidden)
         return y_predicted
 
     def get_values(self, bow, tfidf):
+        '''
+        For debug purposes
+        '''
         x_hidden = self.featureEmbedding(bow, tfidf)
         y_predicted = self.decoder(x_hidden)
         return x_hidden, y_predicted
