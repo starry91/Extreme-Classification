@@ -1,6 +1,10 @@
 import numpy as np
 import pandas as pd
 
+
+# It is for getting list of words used
+# The dataset has words as header
+# The arff file is parsed and these words are extracted.
 filename = 'eurlex-ev-fold2-train.arff'
 filename = 'delicious-test.arff'
 with open(filen_name, 'r') as fp:

@@ -11,7 +11,7 @@ def constructWeightMatrix(filename, datafile, embd_dim):
     word2idx = {}
     glove_path = "."
     vectors = bcolz.carray(np.zeros(1), rootdir=f'{glove_path}/6B.{embd_dim}.dat', mode='w')
-
+    #loading Glove Embeddings into bcolz array
     with open(f'{glove_path}/glove.6B.{embd_dim}d.txt', 'rb') as f:
         for l in f:
             line = l.decode().split()
@@ -32,14 +32,23 @@ def constructWeightMatrix(filename, datafile, embd_dim):
 
     glove = {w: vectors[word2idx[w]] for w in words}
 
-
-    with open(datafile, newline='') as csvfile:
-        words = list(csv.reader(csvfile))
+    # Reading the word list
+    # with open(datafile, newline='') as csvfile:
+    #     words = list(csv.reader(csvfile))
+    filename = 'wiki10-31K_feature_map.txt'
+    with open(filename) as file_in:
+        words = []
+        for line in file_in:
+            words.append(line)
+    words = [x.strip() for x in words] 
     matrix_len = len(words)
     weights_matrix = np.zeros((matrix_len, embd_dim))
     words_found = 0
 
+    # generating Embedding matrix
     for i, word in enumerate(words):
+        #If a word has glove embedding then it is used
+        #Else a random embedding is used for that word
         try: 
             weights_matrix[i] = glove[word]
             words_found += 1
