@@ -103,8 +103,9 @@ decoder.
 
 ### losses.py
 The file losses.py has the implementation  of $L(D)$ which is:
-![Loss function](ss/1.png)
-![L_ae](ss/2.png)
+![Loss function](Screenshot from 2020-05-11 23-57-55.png)
+
+![L_ae](Screenshot from 2020-05-11 23-58-11.png)
 
 ### Instruction to execute the code
 		1. Set the dataset and path to appropriate location in params.config
