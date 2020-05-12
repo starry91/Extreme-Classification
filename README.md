@@ -88,4 +88,4 @@ wherein N(y) is the set of negative label indexes, P(y) is the complement ofN(y)
 
 ### Instruction to execute the code
 		1. Set the dataset and path to appropriate location in params.config
-		2. python main.py params.config
+		2. python main.py
