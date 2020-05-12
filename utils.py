@@ -61,6 +61,13 @@ def print_scores(y_pred, Y_test):
     print("n@5: ", n_k(y_pred, Y_test, 5))
 
 
+def compute_scores(y_pred, Y_test):
+    p1 = p_k(y_pred, Y_test, 1)
+    p3 = p_k(y_pred, Y_test, 3)
+    p5 = p_k(y_pred, Y_test, 5)
+    return p1, p3, p5
+
+
 def get_matrix_from_txt(path):
     features, labels, num_samples, num_features, num_labels = data_utils.read_data(
         path)

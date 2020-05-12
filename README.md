@@ -12,13 +12,13 @@ embedding_size = 100
 attention_layer_size = 25
 encoder_layer_size = 1000
 hidden_layer_size = 100
-learning_rate = 1e-2
+learning_rate = 1e-3
 epoch_num = 1000
 batch_size = 256
 m = 10
 lamda = 1
 ```
-Rest can be found in the params.config file
+All the parameters can be found in the params.config file
 
 ## Model Details
 
@@ -34,26 +34,26 @@ Following is the snippet of model for Eurlex data.
        FeatureEmbedding-1                [256, 5000]               0
               Embedding-2                [256, 5000]         500,000
                  Linear-3           [256, 5000, 100]           2,525
-                   ReLU-4            [256, 5000, 25]               0
-                 Linear-5            [256, 5000, 25]           2,600
-                Sigmoid-6           [256, 5000, 100]               0
-                 Linear-7                 [256, 100]          10,100
-                Sigmoid-8                 [256, 100]               0
-                Encoder-9                [256, 3993]               0
-                Linear-10                [256, 3993]       3,195,200
-           BatchNorm1d-11                 [256, 800]           1,600
-                  ReLU-12                 [256, 800]               0
-                Linear-13                 [256, 800]          80,100
-               Sigmoid-14                 [256, 100]               0
-               Decoder-15                 [256, 100]               0
-                Linear-16                 [256, 100]          80,800
-           BatchNorm1d-17                 [256, 800]           1,600
-                  ReLU-18                 [256, 800]               0
-                Linear-19                 [256, 800]       3,198,393
-               Sigmoid-20                [256, 3993]               0
+            BatchNorm1d-4            [256, 5000, 25]          10,000
+                   ReLU-5            [256, 5000, 25]               0
+                 Linear-6            [256, 5000, 25]           2,600
+                Sigmoid-7           [256, 5000, 100]               0
+                 Linear-8                 [256, 100]          10,100
+                Sigmoid-9                 [256, 100]               0
+               Encoder-10                [256, 3993]               0
+                Linear-11                [256, 3993]       3,195,200
+           BatchNorm1d-12                 [256, 800]           1,600
+                  ReLU-13                 [256, 800]               0
+                Linear-14                 [256, 800]          80,100
+               Sigmoid-15                 [256, 100]               0
+               Decoder-16                 [256, 100]               0
+                Linear-17                 [256, 100]          80,800
+           BatchNorm1d-18                 [256, 800]           1,600
+               Sigmoid-19                 [256, 800]               0
+                Linear-20                 [256, 800]       3,198,393
 =======================================================================
-Total params: 7,072,918
-Trainable params: 7,072,918
+Total params: 7,082,918
+Trainable params: 7,082,918
 Non-trainable params: 0
 -----------------------------------------------------------------------
 
@@ -88,4 +88,4 @@ wherein N(y) is the set of negative label indexes, P(y) is the complement ofN(y)
 
 ### Instruction to execute the code
 		1. Set the dataset and path to appropriate location in params.config
-		2. python main.py <no. of epoch>
+		2. python main.py params.config
